@@ -88,12 +88,18 @@ end
 
 local function browse_project_files(prompt_bufnr)
   local project_path, cd_successful = change_working_directory(prompt_bufnr, true)
-  local opt = {
-    cwd = project_path,
-    hidden = config.options.show_hidden,
-  }
+  local ok, file_browser = pcall(require, "telescope._extensions.file_browser")
+  if not ok then
+    vim.notify("nvim-telescope/telescope-file-browser.nvim is required to use this action", vim.log.levels.ERROR, { title = "Telescope" })
+    return
+  end
   if cd_successful then
-    builtin.file_browser(opt)
+    file_browser.exports.file_browser({
+      cwd = project_path,
+      hidden = config.options.show_hidden,
+      -- initial_mode = "normal",
+      -- hide_parent_dir = true,
+    })
   end
 end
 
@@ -151,14 +157,14 @@ local function projects(opts)
       map("n", "f", find_project_files)
       map("n", "b", browse_project_files)
       map("n", "d", delete_project)
-      map("n", "s", search_in_project_files)
+      map("n", "g", search_in_project_files)
       map("n", "r", recent_project_files)
       map("n", "w", change_working_directory)
 
       map("i", "<c-f>", find_project_files)
       map("i", "<c-b>", browse_project_files)
       map("i", "<c-d>", delete_project)
-      map("i", "<c-s>", search_in_project_files)
+      map("i", "<c-g>", search_in_project_files)
       map("i", "<c-r>", recent_project_files)
       map("i", "<c-w>", change_working_directory)
 
