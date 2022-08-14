@@ -9,6 +9,11 @@ local M = {}
 M.attached_lsp = false
 M.last_project = nil
 
+local state = {
+  current_buf = '',
+  buf_root = {},
+}
+
 function M.find_lsp_root()
   -- Get lsp client for current buffer
   -- Returns nil or string
@@ -177,6 +182,7 @@ function M.set_pwd(dir, method)
 
     if vim.fn.getcwd() ~= dir then
       vim.api.nvim_set_current_dir(dir)
+      -- vim.fn.chdir(dir)
 
       if config.options.silent_chdir == false then
         vim.notify("Set CWD to " .. dir .. " using " .. method)
@@ -242,12 +248,26 @@ function M.on_buf_enter()
     return
   end
 
+  if state.current_buf == vim.api.nvim_buf_get_name(0) then
+    return
+  else
+    state.current_buf = vim.api.nvim_buf_get_name(0)
+  end
+
   local current_dir = vim.fn.expand("%:p:h", true)
   if path.is_excluded(current_dir) then
     return
   end
 
+  if state.buf_root[state.current_buf] then
+    local root, method = unpack(state.buf_root[state.current_buf])
+    M.set_pwd(root, method)
+    return
+  end
+
   local root, method = M.get_project_root()
+  state.buf_root[state.current_buf] = { root, method }
+
   M.set_pwd(root, method)
 end
 
