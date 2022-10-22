@@ -10,7 +10,7 @@ M.attached_lsp = false
 M.last_project = nil
 
 local state = {
-  current_buf = '',
+  current_buf = "",
   buf_root = {},
 }
 
@@ -180,7 +180,7 @@ function M.set_pwd(dir, method)
     M.last_project = dir
     table.insert(history.session_projects, dir)
 
-    if vim.fn.getcwd() ~= dir then
+    if uv.cwd() ~= dir then
       vim.api.nvim_set_current_dir(dir)
       -- vim.fn.chdir(dir)
 
@@ -193,12 +193,17 @@ function M.set_pwd(dir, method)
 
   if config.options.patterns_fallback == true then
     dir = vim.fn.expand("%:p:h")
-    if vim.fn.getcwd() ~= dir then
-      vim.api.nvim_set_current_dir(vim.fn.expand("%:p:h"))
+    if vim.fn.isdirectory(dir) == 0 then
+      return false
+    end
+
+    if uv.cwd() ~= dir then
+      vim.api.nvim_set_current_dir(dir)
       if config.options.silent_chdir == false then
         vim.notify("Set CWD to " .. dir .. " using " .. "fallback")
       end
     end
+    return true
   end
 
   return false
